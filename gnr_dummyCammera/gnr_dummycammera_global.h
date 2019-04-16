@@ -1,0 +1,6 @@
+#ifndef GNR_DUMMYCAMMERA_GLOBAL_H
+#define GNR_DUMMYCAMMERA_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#endif // GNR_DUMMYCAMMERA_GLOBAL_H

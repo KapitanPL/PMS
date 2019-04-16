@@ -1,0 +1,10 @@
+{
+    "logWindow": {
+        "Name": "Log",
+        "bEnableLogging": true,
+        "dirPath": "/home/tpnsvo/projekty/PMS/ResourceUniversalModul/DEBUG/logs"
+    },
+    "pluginPath": [
+        "./Plugins"
+    ]
+}

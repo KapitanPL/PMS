@@ -1,0 +1,4 @@
+22:48:03.432: Program started started
+22:48:03.441: Attempting to load library: ./Plugins/libgnr_dummyCammera.so
+22:48:03.442: FAIL! Library not loaded: ./Plugins/libgnr_dummyCammera.so
+22:48:47.841: Program started started22:48:47.851: Attempting to load library: ./Plugins/libgnr_dummyCammera.so22:48:47.852: FAIL! Library not loaded: ./Plugins/libgnr_dummyCammera.so
