@@ -17,7 +17,7 @@ static bool isValid(const t_byte * objectType, const PF_RegisterParams * params)
 {
   if (!objectType || !(*objectType))
      return false;
-  if (!params ||!params->createFunc || !params->destroyFunc)
+  if (params == nullptr || params->createFunc == nullptr || params->destroyFunc == nullptr)
     return false;
 
   return true;
@@ -92,8 +92,7 @@ t_int32 C_pluginManager::registerObject(const t_byte *nodeType, const PF_Registe
             else
                 return -1;
             S_ObjectInfo aInfo;
-            qDebug() << callTest(5,8);
-            //InitObjectInfo(&aInfo);
+            InitObjectInfo(&aInfo);
             params->callFunc(0, ps("DEVICE_DESCRIPTION"), 0, 0,static_cast<void *>(&aInfo));
 
             S_pluginDevice aDevice;
@@ -167,7 +166,7 @@ t_int32 C_pluginManager::callService(const t_byte *command, void *dataParam)
 
 C_pluginManager::~C_pluginManager()
 {
-    debfor (auto &itExit : m_vExitFuncs)
+    for (auto &itExit : m_vExitFuncs)
         itExit();
 }
 

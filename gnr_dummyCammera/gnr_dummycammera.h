@@ -23,18 +23,23 @@ private:
     ~platform();
 };
 
-/*class C_GuiControl
+class C_GuiControl
 {
 public:
     C_GuiControl();
-    virtual ~C_GuiControl();
+    virtual ~C_GuiControl(){};
     virtual void Init(gnr_dummyCammera *pCamera, t_byte *sName, t_byte *sDescription, t_byte *sUnit, bool bDisplayName, bool bDisplayUnit, eGuiControl eType);
     S_GuiControl m_control;
+    gnr_dummyCammera * m_pCamera;
+    void getMin(void *min);
+    void getMax(void *max);
+    void getVal(void *val);
+    bool validate(void *val);
 };
 
 class gnr_dummyCammera
 {
-
+    friend class C_GuiControl;
 public:
     static void * create(PF_ObjectParams * pParams);
     static t_int32 destroy(void * camera);
@@ -52,13 +57,11 @@ private:
     void getVal(S_GuiControl * pControl, void *val);
     bool validate(S_GuiControl * pControl, void *val);
 
-
     S_GuiControl controls[7];
     S_GuiInfo sGui;
 
     std::mutex m;
     //gui controls statics
-
 
     C_GuiControl    roiLeft;
     C_GuiControl    roiRight;
@@ -67,6 +70,6 @@ private:
     C_GuiControl    SourceFileEdit;
     C_GuiControl    SourceFileButton;
     C_GuiControl    SourceFileResetPos;
-};*/
+};
 
 #endif // GNR_DUMMYCAMMERA_H

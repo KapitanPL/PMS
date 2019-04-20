@@ -11,8 +11,6 @@
 extern "C" {
 #endif
 
-int callTest(int a, int b);
-
 typedef enum 
 {
     eUndef      = 0x00,
@@ -65,6 +63,7 @@ void FreeDataTransfer(S_DataTransfer * pData);
 
 typedef enum _eGuiControl
 {
+    eUnknown        = -1,
     ePushButton     = 0,
     eSwitchButton   = 1,
     eEdit           = 2,

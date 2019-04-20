@@ -90,8 +90,3 @@ void FreeGui(S_GuiInfo * pInfo)
     {}
     return;
 }
-
-int callTest(int a, int b)
-{
-    return a+b;
-}
