@@ -1,3 +1,0 @@
-22:46:19.305: Logging started
-22:46:19.315: Attempting to load library: ./Plugins/libgnr_dummyCammera.so
-22:46:19.316: FAIL! Library not loaded: ./Plugins/libgnr_dummyCammera.so

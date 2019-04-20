@@ -1,2 +1,0 @@
-18:41:55.469: Program started started18:41:55.503: Attempting to load library: ./Plugins/libgnr_dummyCammera.so18:45:42.913: FAIL! Library not loaded: {1} 
- Reason: {2}

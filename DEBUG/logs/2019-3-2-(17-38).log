@@ -1,2 +1,0 @@
-17:38:40.673: Program started started17:38:40.700: Attempting to load library: ./Plugins/libgnr_dummyCammera.so17:38:40.745: FAIL! Library not loaded: ./Plugins/libgnr_dummyCammera.so 
- Reason: Failed to load "./Plugins/libgnr_dummyCammera.so": ./Plugins/libgnr_dummyCammera.so: undefined symbol: _Z14InitObjectInfoP12S_ObjectInfo
