@@ -18,6 +18,7 @@ struct s_globals
 {
     QString m_sConfigPath;
     QStringList m_listPluginPath;
+    QString m_sLockFile = "data.lck";
     s_globals()
         : m_sConfigPath("./Configuration")
         , m_listPluginPath({"./Plugins"})

@@ -17,8 +17,8 @@ struct PF_PlatformServices;
 
 typedef struct PF_ObjectParams_
 {
-  const t_byte * objectType;
-  const struct PF_PlatformServices * platformServices;
+  t_byte * objectType;
+  struct PF_PlatformServices * platformServices;
 } PF_ObjectParams;
  
 typedef struct PF_PluginAPI_Version_

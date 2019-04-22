@@ -183,9 +183,20 @@ void MainWindow::initPluginManager()
                 {
                     PF_ObjectParams params;
                     params.platformServices = &m_pPluginManager->m_platformService;
-                    strcpy((char*)params.objectType, "CAMERA");
+                    strcpy(static_cast<char*>(params.objectType), "CAMERA");
                     camera.pDevice = camera.aParams.createFunc(&params);
-                    QWidget * pCameraWidget = nullptr;
+                    QWidget *pCameraWidget = nullptr;
+
+                    if (camera.pDevice)
+                    {
+                        S_GuiInfo aGuiInfo;
+                        InitGui(&aGuiInfo);
+                        camera.aParams.callFunc(camera.pDevice, ps("GET_GUI_INFO"), nullptr, nullptr ,static_cast<void *>(&aGuiInfo));
+
+                        CreateCameraWidget(&pCameraWidget, aGuiInfo);
+
+                        FreeGui(&aGuiInfo);
+                    }
                     pCameras->addItem(camera.sName, iconCamera, pCameraWidget);
                 }
             }
@@ -255,6 +266,116 @@ void MainWindow::loadFromJson()
     }
 }
 
+void MainWindow::CreateCameraWidget(QWidget ** ppWidget, S_GuiInfo &aInfo)
+{
+    if (aInfo.iCount > 0 && ppWidget)
+    {
+        *ppWidget = new QWidget();
+        QWidget *pWidget = *ppWidget;
+        QGridLayout * pMainL = new QGridLayout();
+        pMainL->setVerticalSpacing(1);
+        pWidget->setLayout(pMainL);
+        pMainL->setContentsMargins(0,0,0,0);
+        int iNextRow = 0;
+        int iColumns = 1;
+        for (int i=0; i < aInfo.iCount; i++)
+        {
+            S_GuiControl *pControl = &aInfo.pControls[i];
+            int iCols = 1;
+            if (pControl->eType != ePushButton || pControl->eType != eSwitchButton)
+            {
+                if (pControl->bDisplayName)
+                    iCols++;
+                if (pControl->bDisplayUnit)
+                    iCols++;
+            }
+            iColumns = std::max(iColumns, iCols);
+        }
+        QHBoxLayout * pToolbar = nullptr;
+        for (int i=0; i < aInfo.iCount; i++)
+        {
+            S_GuiControl *pControl = &aInfo.pControls[i];
+            switch (pControl->eType)
+            {
+            case eEdit:
+            {
+                pToolbar = nullptr;
+                int iCurCol = 0;
+                if (pControl->bDisplayName)
+                {
+                    pMainL->addWidget(new QLabel(pControl->sName), iNextRow, iCurCol);
+                    iCurCol++;
+                }
+                QLineEdit * pEdit = new QLineEdit();
+                pEdit->setFixedHeight(15);
+                pMainL->addWidget(pEdit, iNextRow, iCurCol);
+                iCurCol++;
+                if (pControl->bDisplayUnit)
+                {
+                    pMainL->addWidget(new QLabel(pControl->sUnit), iNextRow, iCurCol);
+                    iCurCol++;
+                }
+                break;
+
+            }
+            case eSplitter:
+            {
+                pToolbar = nullptr;
+                QFrame * line = new QFrame();
+                line->setFrameShape(QFrame::HLine);
+                line->setFrameShadow(QFrame::Sunken);
+                pMainL->addWidget(line, iNextRow, 0, 1, iColumns );
+                break;
+            }
+            case ePushButton:
+            {
+                if (i < aInfo.iCount-1 && aInfo.pControls[i+1].eType == ePushButton) //first of several buttons, put them in a toolbar
+                {
+                    if (!pToolbar)
+                    {
+                        pToolbar = new QHBoxLayout();
+                        pMainL->addLayout(pToolbar, iNextRow, 0, 1, iColumns);
+                    }
+                    QPushButton * pPush = new QPushButton(pControl->bDisplayName ? pControl->sName : "");
+                    if (pToolbar)
+                    {
+                        pToolbar->addWidget(pPush);
+                    }
+                    else
+                        pMainL->addWidget(pPush, iNextRow, 0, 1, 1);
+
+                }
+                else
+                {
+                    QPushButton * pPush = new QPushButton(pControl->bDisplayName ? pControl->sName : "");
+                    if (pToolbar)
+                    {
+                        pToolbar->addWidget(pPush);
+                        pToolbar->addStretch(1);
+                    }
+                    else
+                        pMainL->addWidget(pPush, iNextRow, 0, 1, 1);
+                    pToolbar = nullptr;
+                }
+                break;
+            }
+            default:
+            {
+                pToolbar = nullptr;
+                QString sLabel = tr("Here is supposed to be: ");
+                sLabel.append(pControl->sName);
+                pMainL->addWidget(new QLabel(sLabel), iNextRow, 0, iColumns, 1);
+
+                break;
+            }
+            }
+            if (!pToolbar)
+                iNextRow++;
+        }
+
+    }
+}
+
 QWidget *MainWindow::widgetFromQML(QString source, QWidget *parent)
 {
     QQuickView *view = new QQuickView();
@@ -288,6 +409,7 @@ void MainWindow::displayChild(C_childWidget * widget, QAction * pAction)
                 pLogChild->setWidget(widget);
                 pLogChild->show();
                 widget->move(widget->pos());
+                //qDebug() << widget->size();
             }
             break;
         }

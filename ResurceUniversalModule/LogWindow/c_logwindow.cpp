@@ -23,11 +23,11 @@ C_logWindow::C_logWindow(QWidget *parent)
     this->setLayout(layoutMainV);
     QHBoxLayout * layoutDir = new QHBoxLayout;
 
-    QCheckBox * checkEnable = new QCheckBox(tr("Enable logging"));
-    checkEnable->setObjectName("checkEnable");
-    connect(checkEnable, &QCheckBox::toggled, this, &C_logWindow::checkEnableChanged);
-    checkEnable->setChecked(true);
-    layoutMainV->addWidget(checkEnable);
+    m_checkEnable = new QCheckBox(tr("Enable logging"));
+    m_checkEnable->setObjectName("checkEnable");
+    connect(m_checkEnable, &QCheckBox::toggled, this, &C_logWindow::checkEnableChanged);
+    m_checkEnable->setChecked(true);
+    layoutMainV->addWidget(m_checkEnable);
 
     QPushButton * buttonDir = new QPushButton("");
     buttonDir->setIcon(QIcon(":/directory.svg"));
@@ -52,6 +52,8 @@ C_logWindow::C_logWindow(QWidget *parent)
     setLogPath(m_logPath);
 
     startLogger();
+
+    resize(sizeHint());
 }
 
 C_logWindow::~C_logWindow()
@@ -64,19 +66,22 @@ C_logWindow::~C_logWindow()
 
 void C_logWindow::logThis(const QString &sMessage)
 {
-    QTime now = QTime::currentTime();
-    QString logMsg = now.toString("hh:mm:ss.zzz") + ": " +sMessage/*+"\n"*/;
-    m_pEdit->append(logMsg);
-    m_mainQueue.enqueue(logMsg);
-    if (m_storeQueue.empty())
+    if (m_checkEnable && m_checkEnable->isChecked())
     {
-        if (m_pSaveThread && m_pSaveThread->joinable())
+        QTime now = QTime::currentTime();
+        QString logMsg = now.toString("hh:mm:ss.zzz") + ": " +sMessage/*+"\n"*/;
+        m_pEdit->append(logMsg);
+        m_mainQueue.enqueue(logMsg);
+        if (m_storeQueue.empty())
         {
-            m_pSaveThread->join(); //this should be really fast as the store queue is empty, this should return imediatly
-            m_pSaveThread = nullptr;
+            if (m_pSaveThread && m_pSaveThread->joinable())
+            {
+                m_pSaveThread->join(); //this should be really fast as the store queue is empty, this should return imediatly
+                m_pSaveThread = nullptr;
+            }
+            swapQueues(); //set the second queue to be saved
+            m_pSaveThread = new std::thread([this]{saveQueue();});
         }
-        swapQueues(); //set the second queue to be saved
-        m_pSaveThread = new std::thread([this]{saveQueue();});
     }
 }
 

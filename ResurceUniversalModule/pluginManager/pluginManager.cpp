@@ -6,11 +6,6 @@
 #include "DynamicLibrary.h"
 #include <QDebug>
 
-const t_byte * ps(const char a[])
-{
-    return reinterpret_cast<const t_byte *>(&a[0]);
-}
-
 //static C_pluginManager manager;
 
 static bool isValid(const t_byte * objectType, const PF_RegisterParams * params)
@@ -84,7 +79,7 @@ t_int32 C_pluginManager::registerObject(const t_byte *nodeType, const PF_Registe
         if (params->version.major == pm->m_platformService.version.major
                 && params->version.minor <= pm->m_platformService.version.minor)
         {
-            QString key((const char *)nodeType);
+            QString key(static_cast<const char *>(nodeType));
             if (key == QString("*"))
                 pm->m_vRegs.push_back(*params);
             if (pm->m_regMap.find(key) == pm->m_regMap.end())
@@ -93,10 +88,10 @@ t_int32 C_pluginManager::registerObject(const t_byte *nodeType, const PF_Registe
                 return -1;
             S_ObjectInfo aInfo;
             InitObjectInfo(&aInfo);
-            params->callFunc(0, ps("DEVICE_DESCRIPTION"), 0, 0,static_cast<void *>(&aInfo));
+            params->callFunc(nullptr, ps("DEVICE_DESCRIPTION"), nullptr, nullptr ,static_cast<void *>(&aInfo));
 
             S_pluginDevice aDevice;
-            aDevice.sName = QString((const char*)aInfo.name);
+            aDevice.sName = QString(static_cast<const char*>(aInfo.name));
             aDevice.aInfo = aInfo;
             aDevice.aParams = * params;
             switch (aInfo.eDevice)
@@ -138,25 +133,25 @@ t_int32 C_pluginManager::callService(const t_byte *command, void *dataParam)
     C_pluginManager * self = &getInstance();
     if (!self)
         return -1;
-    QString sCommand = QString::fromLatin1((const char*)command);
+    QString sCommand = QString::fromLatin1(static_cast<const char*>(command));
     if (sCommand == "LOG")
     {
         MainWindow* parent = qobject_cast<MainWindow*>(self->m_parent);
-        QString sMessage = QString::fromLatin1((char *)dataParam);
+        QString sMessage = QString::fromLatin1(static_cast<char *>(dataParam));
         if (parent)
             parent->LogThis(sMessage);
     }
     if (sCommand == "ERR")
     {
         MainWindow* parent = qobject_cast<MainWindow*>(self->m_parent);
-        QString sError = QString(*(char *)dataParam);
+        QString sError = QString(*static_cast<char *>(dataParam));
         if (parent)
             parent->LogThis(QString("ERR ").append(sError));
     }
     if (sCommand == "PROGRES")
     {
         MainWindow* parent = qobject_cast<MainWindow*>(self->m_parent);
-        double dProgress = *(double*)dataParam;
+        double dProgress = *static_cast<double*>(dataParam);
         QString sMessage = QString("Progress %1").arg(dProgress);
         if (parent)
             parent->LogThis(sMessage);
@@ -180,7 +175,7 @@ void C_pluginManager::loadLibrary(QString sPath)
     T_sharedLibraryPointer pLib = T_sharedLibraryPointer(DynamicLibrary::load(sPath.toStdString(), sErrString));
     if (pLib)
     {
-        PF_InitFunc fInitFunc = (PF_InitFunc)(pLib->getSymbol("PF_initPlugin"));
+        PF_InitFunc fInitFunc = reinterpret_cast<PF_InitFunc>(pLib->getSymbol("PF_initPlugin"));
         if (fInitFunc)
         {
             PF_ExitFunc fExitFunc = fInitFunc(&m_platformService);

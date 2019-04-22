@@ -69,7 +69,8 @@ typedef enum _eGuiControl
     eEdit           = 2,
     eSlider         = 3,
     eCombo          = 4,
-    eSpinBox        = 5
+    eSpinBox        = 5,
+    eSplitter       = 6
 } eGuiControl;
 
 typedef struct _S_GuiControl

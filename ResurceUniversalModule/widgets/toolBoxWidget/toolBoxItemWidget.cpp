@@ -2,23 +2,85 @@
 
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QScrollArea>
+#include <QDebug>
+
+
+
+QColor levelColor(int iLevel)
+{
+    QColor ret;
+    int iVal = 64*(iLevel % 3);
+    iVal = iVal % 255;
+    switch (iLevel % 3)
+    {
+    case 0:
+    {
+        ret = QColor::fromRgb(255 - iVal, 255, 255);
+        break;
+    }
+    case 1:
+    {
+        ret = QColor::fromRgb(255, 255 - iVal, 255);
+        break;
+    }
+    case 2:
+    {
+        ret = QColor::fromRgb(255, 255, 255-iVal);
+        break;
+    }
+    }
+    return ret;
+}
 
 QToolBoxItemWidget::QToolBoxItemWidget(QString sName, QIcon &icon, QWidget * pwidget, QWidget *parent)
     :QWidget(parent)
 {
+    QToolBoxItemWidget *pParentTool = qobject_cast<QToolBoxItemWidget*>(parent);
+    if (pParentTool)
+        m_iLevel = pParentTool->level()+1;
     QVBoxLayout * pLayout = new QVBoxLayout(this);
     pLayout->setContentsMargins(0,0,0,0);
     pLayout->setSpacing(2);
+    QHBoxLayout * pButtonLayout = new QHBoxLayout();
+    pButtonLayout->setContentsMargins(0,0,0,0);
+    pLayout->addLayout(pButtonLayout);
     QPushButton * pPush = new QPushButton();
     pPush->setObjectName("push");
+    pPush->setFixedHeight(20);
     pPush->setCheckable(true);
     pPush->setChecked(true);
     connect(pPush, &QPushButton::clicked, this, &QToolBoxItemWidget::pushClicked);
-    pLayout->addWidget(pPush, 0);
-    QScrollArea * pArea = new QScrollArea();
+    pButtonLayout->addWidget(pPush, 0);
+    pButtonLayout->addStretch(1);
+
+    QHBoxLayout * hLayTree = new QHBoxLayout();
+    hLayTree->setSpacing(0);
+    hLayTree->setContentsMargins(0,0,0,0);
+
+    QWidget * pColorWidget = new QWidget();
+    pColorWidget->setFixedWidth(5);
+    QPalette pal = pColorWidget->palette();
+    QPalette originalPalette = pal;
+
+    // set black background
+    pal.setColor(QPalette::Background, levelColor(m_iLevel));
+    pColorWidget->setAutoFillBackground(true);
+    pColorWidget->setPalette(pal);
+
+    setAutoFillBackground(true);
+    setPalette(pal);
+
+    hLayTree->addWidget(pColorWidget);
+
+    pLayout->addLayout(hLayTree);
+
+    C_QScrollArea * pArea = new C_QScrollArea();
+    pArea->setPalette(originalPalette);
+    pArea->setAutoFillBackground(true);
     pArea->setObjectName("scroll");
-    pLayout->addWidget(pArea);
+    pArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    pArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    hLayTree->addWidget(pArea);
     pLayout->addStretch(1);
     QVBoxLayout * pAreaLayout = new QVBoxLayout(pArea);
     pAreaLayout->setSpacing(1);
@@ -27,7 +89,9 @@ QToolBoxItemWidget::QToolBoxItemWidget(QString sName, QIcon &icon, QWidget * pwi
     pPush->setText(sName);
     pPush->setIcon(icon);
     if (pwidget)
+    {
         pAreaLayout->addWidget(pwidget);
+    }
 }
 
 QToolBoxItemWidget::~QToolBoxItemWidget()
@@ -73,12 +137,22 @@ QWidget *QToolBoxItemWidget::getItemAt(int iPos)
         return nullptr;
 }
 
+int QToolBoxItemWidget::level() const
+{
+    return m_iLevel;
+}
+
 void QToolBoxItemWidget::pushClicked(bool)
 {
     QPushButton * pPush = this->findChild<QPushButton*>("push");
-    QScrollArea * pScroll = this->findChild<QScrollArea*>("scroll");
+    C_QScrollArea * pScroll = this->findChild<C_QScrollArea*>("scroll");
     if (pPush && pScroll)
     {
         pScroll->setVisible(pPush->isChecked());
     }
+}
+
+QSize C_QScrollArea::sizeHint() const
+{
+    return layout()->totalSizeHint();
 }

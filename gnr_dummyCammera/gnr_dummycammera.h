@@ -6,6 +6,13 @@
 #include "../PF_interface/PF_structs.h"
 #include "../PF_interface/PF_pluginInterfaceV01.h" //here the PLUGIN_API is declared
 
+#include <vector>
+
+inline const t_byte * ps(const char a[])
+{
+    return reinterpret_cast<const t_byte *>(&a[0]);
+}
+
 class gnr_dummyCammera;
 
 extern "C" PLUGIN_API t_int32 ExitFunc();
@@ -28,8 +35,8 @@ class C_GuiControl
 public:
     C_GuiControl();
     virtual ~C_GuiControl(){};
-    virtual void Init(gnr_dummyCammera *pCamera, t_byte *sName, t_byte *sDescription, t_byte *sUnit, bool bDisplayName, bool bDisplayUnit, eGuiControl eType);
-    S_GuiControl m_control;
+    virtual void Init(S_GuiControl &aControl, gnr_dummyCammera *pCamera, const t_byte *sName, const t_byte *sDescription, const t_byte *sUnit, bool bDisplayName, bool bDisplayUnit, eGuiControl eType);
+    S_GuiControl * m_pControl = nullptr;
     gnr_dummyCammera * m_pCamera;
     void getMin(void *min);
     void getMax(void *max);
@@ -57,7 +64,7 @@ private:
     void getVal(S_GuiControl * pControl, void *val);
     bool validate(S_GuiControl * pControl, void *val);
 
-    S_GuiControl controls[7];
+    std::vector<S_GuiControl> vControls;
     S_GuiInfo sGui;
 
     std::mutex m;

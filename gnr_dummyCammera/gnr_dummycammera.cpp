@@ -1,6 +1,16 @@
 #include "gnr_dummycammera.h"
 #include "string.h"
 
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <random>
+#include <climits>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <QDebug>
+
 extern "C" PLUGIN_API t_int32 ExitFunc()
 {
   return 0;
@@ -11,12 +21,13 @@ static S_ObjectInfo sDummyCameraInfo;
 void createInfo()
 {
     InitObjectInfo(&sDummyCameraInfo);
-    strcpy((char*)sDummyCameraInfo.name, "dummy Camera");
+    strcpy(static_cast<char*>(sDummyCameraInfo.name), "dummy Camera");
     sDummyCameraInfo.eDevice = eCamera;
     sDummyCameraInfo.eDimensionsIn = eUndef;
     sDummyCameraInfo.eDimensionsOut = e2D;
     sDummyCameraInfo.iID = 0;
-    sDummyCameraInfo.uuid[0] = 0x45;
+
+    /*sDummyCameraInfo.uuid[0] = 0x45;
     sDummyCameraInfo.uuid[1] = 0x1C;
     sDummyCameraInfo.uuid[2] = 0x1B;
     sDummyCameraInfo.uuid[3] = 0x5A;
@@ -31,7 +42,17 @@ void createInfo()
     sDummyCameraInfo.uuid[12] = 0xC2;
     sDummyCameraInfo.uuid[13] = 0x6B;
     sDummyCameraInfo.uuid[14] = 0xE5;
-    sDummyCameraInfo.uuid[15] = 0xB9;
+    sDummyCameraInfo.uuid[15] = 0xB9;*/
+
+     //"70 6c bc c9 91 2d 4f 94 bc 1b 0c a9 f3 c9 d3 71"
+    std::string sUUID = "451C1B5A42CC8211E89A7D8CC26BE5B9";
+    if (sUUID.size()>32)
+        sUUID.resize(32);
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        std::string byteString  = sUUID.substr(2*i, 2);
+        sDummyCameraInfo.uuid[i] = strtol(byteString.c_str(), nullptr, 16);
+    }
 }
 
 extern "C" PLUGIN_API PF_ExitFunc PF_initPlugin(const PF_PlatformServices * params)
@@ -50,7 +71,7 @@ extern "C" PLUGIN_API PF_ExitFunc PF_initPlugin(const PF_PlatformServices * para
   rp.createFunc = gnr_dummyCammera::create;
   rp.callFunc =  gnr_dummyCammera::call;
   rp.destroyFunc = gnr_dummyCammera::destroy;
-  platform.services.registerObject((const t_byte*)"DUMMY_CAMERA", &rp);
+  platform.services.registerObject(ps("DUMMY_CAMERA"), &rp);
 
   return ExitFunc;
 }
@@ -91,7 +112,7 @@ t_int32 platform::callLog(const char sMessage[256])
 {
     platform &platform = getPlatform();
     if (platform.services.invokeService)
-        return platform.services.invokeService((const t_byte*)&"LOG", (void*)sMessage);
+        return platform.services.invokeService(ps("LOG"), (void*)(&sMessage[0]));
     return -1;
 
 }
@@ -118,11 +139,11 @@ t_int32 gnr_dummyCammera::call(void *camera, const t_byte *command, t_int32 */*p
 {
     t_int32 iRes = RES_OK;
     gnr_dummyCammera * pCamera = static_cast<gnr_dummyCammera * >(camera);
-    const char * sCommand = (const char *)command;
-    if (pCamera && command)
+    const char * sCommand = static_cast<const char *>(command);
+    /*if (pCamera && command)
     {
         iRes = RES_ERR_NOTIMPL;
-    }
+    }*/
     if (strcmp(sCommand, "DEVICE_DESCRIPTION") == 0 && pParam)
     {
         S_ObjectInfo * pInfo = static_cast<S_ObjectInfo*>(pParam);
@@ -137,9 +158,28 @@ t_int32 gnr_dummyCammera::call(void *camera, const t_byte *command, t_int32 */*p
 }
 
 gnr_dummyCammera::gnr_dummyCammera()
-{
-    sGui.iCount = sizeof(controls)/sizeof(S_GuiControl);
-    sGui.pControls = &controls[0];
+{    
+    vControls.resize(vControls.size()+1);
+    roiLeft.Init(vControls.back(),this, "Left", "Left border", "px", true, true, eEdit);
+    vControls.resize(vControls.size()+1);
+    roiTop.Init(vControls.back(),this, "Top", "Top border", "px", true, true, eEdit);
+    vControls.resize(vControls.size()+1);
+    roiRight.Init(vControls.back(),this, "Right", "Right border", "px", true, true, eEdit);
+    vControls.resize(vControls.size()+1);
+    roiBottom.Init(vControls.back(),this, "Bottom", "Bottom border", "px", true, true, eEdit);
+
+    vControls.resize(vControls.size()+1);
+    vControls.back().eType = eSplitter;
+
+    vControls.resize(vControls.size()+1);
+    SourceFileEdit.Init(vControls.back(),this, "Source File", "Source file path", "", true, false, eEdit);
+    vControls.resize(vControls.size()+1);
+    SourceFileButton.Init(vControls.back(),this, "Choose file", "Choose file", "", true, false, ePushButton);
+    vControls.resize(vControls.size()+1);
+    SourceFileResetPos.Init(vControls.back(),this, "Reset file position", "Choose file", "", true, false, ePushButton);
+
+    sGui.iCount = static_cast<t_int32>(vControls.size());
+    sGui.pControls = vControls.data();
 }
 
 
@@ -148,19 +188,19 @@ void gnr_dummyCammera::getMin(S_GuiControl *pControl, void *min)
 {
     if (pControl && min)
     {
-        if (pControl == &roiLeft.m_control)
+        if (pControl == roiLeft.m_pControl)
         {
 
         }
-        else if (pControl == &roiRight.m_control)
+        else if (pControl == roiRight.m_pControl)
         {
 
         }
-        else if (pControl == &roiTop.m_control)
+        else if (pControl == roiTop.m_pControl)
         {
 
         }
-        else if (pControl == &roiBottom.m_control)
+        else if (pControl == roiBottom.m_pControl)
         {
 
         }
@@ -171,19 +211,19 @@ void gnr_dummyCammera::getMax(S_GuiControl *pControl, void *max)
 {
     if (pControl && max)
     {
-        if (pControl == &roiLeft.m_control)
+        if (pControl == roiLeft.m_pControl)
         {
 
         }
-        else if (pControl == &roiRight.m_control)
+        else if (pControl == roiRight.m_pControl)
         {
 
         }
-        else if (pControl == &roiTop.m_control)
+        else if (pControl == roiTop.m_pControl)
         {
 
         }
-        else if (pControl == &roiBottom.m_control)
+        else if (pControl == roiBottom.m_pControl)
         {
 
         }
@@ -194,31 +234,31 @@ void gnr_dummyCammera::getVal(S_GuiControl *pControl, void *val)
 {
     if (pControl && val)
     {
-        if (pControl == &roiLeft.m_control)
+        if (pControl == roiLeft.m_pControl)
         {
 
         }
-        else if (pControl == &roiRight.m_control)
+        else if (pControl == roiRight.m_pControl)
         {
 
         }
-        else if (pControl == &roiTop.m_control)
+        else if (pControl == roiTop.m_pControl)
         {
 
         }
-        else if (pControl == &roiBottom.m_control)
+        else if (pControl == roiBottom.m_pControl)
         {
 
         }
-        else if (pControl == &SourceFileEdit.m_control)
+        else if (pControl == SourceFileEdit.m_pControl)
         {
 
         }
-        else if (pControl == &SourceFileEdit.m_control)
+        else if (pControl == SourceFileEdit.m_pControl)
         {
 
         }
-        else if (pControl == &SourceFileResetPos.m_control)
+        else if (pControl == SourceFileResetPos.m_pControl)
         {
 
         }
@@ -230,31 +270,31 @@ bool gnr_dummyCammera::validate(S_GuiControl *pControl, void *val)
     bool bRet = true;
     if (pControl && val)
     {
-        if (pControl == &roiLeft.m_control)
+        if (pControl == roiLeft.m_pControl)
         {
 
         }
-        else if (pControl == &roiRight.m_control)
+        else if (pControl == roiRight.m_pControl)
         {
 
         }
-        else if (pControl == &roiTop.m_control)
+        else if (pControl == roiTop.m_pControl)
         {
 
         }
-        else if (pControl == &roiBottom.m_control)
+        else if (pControl == roiBottom.m_pControl)
         {
 
         }
-        else if (pControl == &SourceFileEdit.m_control)
+        else if (pControl == SourceFileEdit.m_pControl)
         {
 
         }
-        else if (pControl == &SourceFileEdit.m_control)
+        else if (pControl == SourceFileEdit.m_pControl)
         {
 
         }
-        else if (pControl == &SourceFileResetPos.m_control)
+        else if (pControl == SourceFileResetPos.m_pControl)
         {
 
         }
@@ -281,51 +321,42 @@ void gnr_dummyCammera::linkControl(S_GuiControl *pControl)
 
 C_GuiControl::C_GuiControl()
 {
-   m_control.eType = eUnknown;
-   m_control.sName[0] = 0;
-   m_control.sUnit[0] = 0;
-   m_control.sDescription[0] = 0;
-   m_control.getMax = nullptr;
-   m_control.getMin = nullptr;
-   m_control.getVal = nullptr;
-   m_control.validate = nullptr;
-   m_control.bDisplayName = true;
-   m_control.bDisplayUnit = false;
 }
 
-void C_GuiControl::Init(gnr_dummyCammera *pCamera, t_byte *sName, t_byte *sDescription, t_byte *sUnit, bool bDisplayName, bool bDisplayUnit, eGuiControl eType)
+void C_GuiControl::Init(S_GuiControl &aControl, gnr_dummyCammera *pCamera, const t_byte *sName, const t_byte *sDescription, const t_byte *sUnit, bool bDisplayName, bool bDisplayUnit, eGuiControl eType)
 {
-    m_control.eType = eType;
-    strcpy(m_control.sName, sName);
-    strcpy(m_control.sDescription, sDescription);
-    strcpy(m_control.sUnit, sUnit);
-    m_control.bDisplayName = bDisplayName;
-    m_control.bDisplayUnit = bDisplayUnit;
+    m_pControl = &aControl;
+    m_pControl->eType = eType;
+    strcpy(m_pControl->sName, sName);
+    strcpy(m_pControl->sDescription, sDescription);
+    strcpy(m_pControl->sUnit, sUnit);
+    m_pControl->bDisplayName = bDisplayName;
+    m_pControl->bDisplayUnit = bDisplayUnit;
     m_pCamera = pCamera;
 }
 
 void C_GuiControl::getMin(void *min)
 {
     if (m_pCamera)
-        m_pCamera->getMin(&m_control, min);
+        m_pCamera->getMin(m_pControl, min);
 }
 
 void C_GuiControl::getMax(void *max)
 {
     if (m_pCamera)
-        m_pCamera->getMax(&m_control, max);
+        m_pCamera->getMax(m_pControl, max);
 }
 
 void C_GuiControl::getVal(void *val)
 {
     if (m_pCamera)
-        m_pCamera->getVal(&m_control, val);
+        m_pCamera->getVal(m_pControl, val);
 }
 
 bool C_GuiControl::validate(void *val)
 {
     if (m_pCamera)
-        return m_pCamera->validate(&m_control, val);
+        return m_pCamera->validate(m_pControl, val);
     else
         return true;
 }

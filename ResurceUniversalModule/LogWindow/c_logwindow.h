@@ -9,6 +9,7 @@
 #include <QDataStream>
 #include <QQueue>
 #include <QTextEdit>
+#include <QCheckBox>
 
 class C_logWindow : public C_childWidget
 {
@@ -41,6 +42,8 @@ private:
     QQueue<QString> m_mainQueue;
     QQueue<QString> m_storeQueue;
     std::mutex      m_SwapMutex;
+
+    QCheckBox * m_checkEnable = nullptr;
 };
 
 #endif // C_LOGWINDOW_H

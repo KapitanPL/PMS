@@ -8,6 +8,11 @@
 #include <QSharedPointer>
 #include <memory>
 
+inline const t_byte * ps(const char a[])
+{
+    return reinterpret_cast<const t_byte *>(&a[0]);
+}
+
 class DynamicLibrary;
 
 struct PluginInfo

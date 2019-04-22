@@ -31,6 +31,8 @@ private:
     virtual void saveToJson();
     virtual void loadFromJson();
 
+    virtual void CreateCameraWidget(QWidget ** pWidget, S_GuiInfo &aInfo);
+
     virtual QWidget * widgetFromQML(QString source, QWidget * parent = nullptr);
 
 private slots:

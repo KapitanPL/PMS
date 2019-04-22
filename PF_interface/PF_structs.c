@@ -87,6 +87,8 @@ void InitGui(S_GuiInfo * info)
 void FreeGui(S_GuiInfo * pInfo)
 {
     if (pInfo)
-    {}
+    {
+        pInfo->pControls = 0;
+    }
     return;
 }
