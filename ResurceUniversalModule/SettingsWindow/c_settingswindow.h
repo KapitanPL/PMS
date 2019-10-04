@@ -11,7 +11,7 @@ class C_settingsWindow : public C_childWidget
 {
     Q_OBJECT
 public:
-    C_settingsWindow(QWidget * parent = nullptr, QString sQML = QString(""), QSharedPointer<s_globals> globals = nullptr);
+    C_settingsWindow(QWidget * parent = nullptr, QString sQML = QString(""), QSharedPointer<s_globals> globals = QSharedPointer<s_globals>());
     ~C_settingsWindow();
 
     virtual void saveThis();

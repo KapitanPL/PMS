@@ -121,7 +121,8 @@ void C_settingsWindow::addPluginPathGroup(QString sPath)
     }
     itemLayout->addWidget(editPluginPath, 1);
     QToolButton * buttonDir = new QToolButton();
-    buttonDir->setIcon(QIcon(":/directory.svg"));
+    QIcon directory(":/directory.svg");
+    buttonDir->setIcon(directory);
     itemLayout->addWidget(buttonDir);
     QToolButton * buttonRemove = new QToolButton();
     buttonRemove->setIcon(QIcon(":/remove.svg"));

@@ -10,6 +10,7 @@
         <file alias="unknown.svg">general/unknown.svg</file>
         <file alias="expand_all.svg">general/expand_all.svg</file>
         <file alias="colapse_all.svg">general/colapse_all.svg</file>
+        <file alias="test.png">system/png.png</file>
     </qresource>
     <qresource prefix="/stylesheets"/>
 </RCC>
